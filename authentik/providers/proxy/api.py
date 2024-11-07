@@ -93,7 +93,7 @@ class ProxyProviderSerializer(ProviderSerializer):
             "intercept_header_auth",
             "redirect_uris",
             "cookie_domain",
-            "jwks_sources",
+            "jwt_federation_sources",
             "access_token_validity",
             "refresh_token_validity",
             "outpost_set",

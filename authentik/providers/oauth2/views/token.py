@@ -369,7 +369,7 @@ class TokenParams:
             LOGGER.warning("failed to parse JWT for kid lookup", exc=exc)
             raise TokenError("invalid_grant") from None
         expected_kid = decode_unvalidated["header"]["kid"]
-        for source in self.provider.jwks_sources.filter(
+        for source in self.provider.jwt_federation_sources.filter(
             oidc_jwks__keys__contains=[{"kid": expected_kid}]
         ):
             LOGGER.debug("verifying JWT with source", source=source.slug)

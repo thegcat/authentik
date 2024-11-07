@@ -77,8 +77,9 @@ class IssuerMode(models.TextChoices):
     """Configure how the `iss` field is created."""
 
     GLOBAL = "global", _("Same identifier is used for all providers")
-    PER_PROVIDER = "per_provider", _(
-        "Each provider has a different issuer, based on the application slug."
+    PER_PROVIDER = (
+        "per_provider",
+        _("Each provider has a different issuer, based on the application slug."),
     )
 
 
@@ -231,7 +232,7 @@ class OAuth2Provider(WebfingerProvider, Provider):
         related_name="oauth2provider_encryption_key_set",
     )
 
-    jwks_sources = models.ManyToManyField(
+    jwt_federation_sources = models.ManyToManyField(
         OAuthSource,
         verbose_name=_(
             "Any JWT signed by the JWK of the selected source can be used to authenticate."
@@ -240,6 +241,7 @@ class OAuth2Provider(WebfingerProvider, Provider):
         default=None,
         blank=True,
     )
+    jwt_federation_providers = models.ManyToManyField("OAuth2Provider", blank=True, default=None)
 
     @cached_property
     def jwt_key(self) -> tuple[str | PrivateKeyTypes, str]:
