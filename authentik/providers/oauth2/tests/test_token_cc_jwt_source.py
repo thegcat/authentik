@@ -32,9 +32,16 @@ class TestTokenClientCredentialsJWTSource(OAuthTestCase):
     def setUp(self) -> None:
         super().setUp()
         self.factory = RequestFactory()
+        self.other_cert = create_test_cert()
+        # Provider used as a helper to sign JWTs with the same key as the OAuth source has
+        self.helper_provider = OAuth2Provider.objects.create(
+            name=generate_id(),
+            authorization_flow=create_test_flow(),
+            signing_key=self.other_cert,
+        )
         self.cert = create_test_cert()
 
-        jwk = JWKSView().get_jwk_for_key(self.cert, "sig")
+        jwk = JWKSView().get_jwk_for_key(self.other_cert, "sig")
         self.source: OAuthSource = OAuthSource.objects.create(
             name=generate_id(),
             slug=generate_id(),
@@ -95,7 +102,7 @@ class TestTokenClientCredentialsJWTSource(OAuthTestCase):
 
     def test_invalid_signature(self):
         """test invalid JWT"""
-        token = self.provider.encode(
+        token = self.helper_provider.encode(
             {
                 "sub": "foo",
                 "exp": datetime.now() + timedelta(hours=2),
@@ -117,7 +124,7 @@ class TestTokenClientCredentialsJWTSource(OAuthTestCase):
 
     def test_invalid_expired(self):
         """test invalid JWT"""
-        token = self.provider.encode(
+        token = self.helper_provider.encode(
             {
                 "sub": "foo",
                 "exp": datetime.now() - timedelta(hours=2),
@@ -141,7 +148,7 @@ class TestTokenClientCredentialsJWTSource(OAuthTestCase):
         """test invalid JWT"""
         self.app.provider = None
         self.app.save()
-        token = self.provider.encode(
+        token = self.helper_provider.encode(
             {
                 "sub": "foo",
                 "exp": datetime.now() + timedelta(hours=2),
@@ -169,7 +176,7 @@ class TestTokenClientCredentialsJWTSource(OAuthTestCase):
             target=self.app,
             order=0,
         )
-        token = self.provider.encode(
+        token = self.helper_provider.encode(
             {
                 "sub": "foo",
                 "exp": datetime.now() + timedelta(hours=2),
@@ -191,7 +198,7 @@ class TestTokenClientCredentialsJWTSource(OAuthTestCase):
 
     def test_successful(self):
         """test successful"""
-        token = self.provider.encode(
+        token = self.helper_provider.encode(
             {
                 "sub": "foo",
                 "exp": datetime.now() + timedelta(hours=2),
